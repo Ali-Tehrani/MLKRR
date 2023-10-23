@@ -66,6 +66,12 @@ class MLKRR:
     shuffle_iterations: int, optional (default=1)
       Number of reshufflings of the data between alpha and A sets.
 
+    patience: int, optional (default=None)
+        If patience is provided, then early stopping is performed,
+        i.e. the optimziation terminates if the test error doesn't
+        increase after `patience` iteration.
+
+
     Attributes
     ----------
     max_iter_per_shuffle : `int`
@@ -120,7 +126,8 @@ class MLKRR:
         size_alpha=0.5,
         size_A=0.5,
         shuffle_iterations=1,
-        diag=False
+        diag=False,
+        patience=None,
     ):
 
         self.test_data = test_data
@@ -136,6 +143,10 @@ class MLKRR:
         self.size_A = size_A
         self.shuffle_iterations = shuffle_iterations
         self.diag = diag
+        # Add Patience
+        self.patience = patience
+        self.min_validation_loss = np.inf
+        self.counter = 0
 
     def fit(self, X, y):
         """
@@ -325,7 +336,7 @@ class MLKRR:
         
         return cost, gradA.ravel()
    
-    def callback(self,parms):
+    def callback(self, parms):
 
         if self.test_data != None:
             self.train_rmses.append(self.train_rmse)
@@ -335,6 +346,15 @@ class MLKRR:
                 print("Train MAE:", np.round(self.train_mae, 5))
             self.test_rmses.append(self.test_rmse)
             self.test_maes.append(self.test_mae)
+
+            if self.patience is not None:
+                if self.test_rmse < self.min_validation_loss:
+                    self.min_validation_loss = self.test_rmse
+                    self.counter = 0
+                elif self.test_rmse > (self.min_validation_loss - 0.0):
+                    self.counter += 1
+                    if self.counter >= self.patience:
+                        raise StopIteration()
 
             if self.verbose:
                 print("Test RMSE:", np.round(self.test_rmse, 5))

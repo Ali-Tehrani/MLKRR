@@ -143,9 +143,11 @@ class MLKRR:
         self.size_A = size_A
         self.shuffle_iterations = shuffle_iterations
         self.diag = diag
-        # Add Patience
+        # Add Patience and store the best A and best sigma found.
         self.patience = patience
         self.min_validation_loss = np.inf
+        self.best_A = None
+        self.best_sigma = None
         self.counter = 0
 
     def fit(self, X, y):
@@ -351,6 +353,8 @@ class MLKRR:
                 if self.test_rmse < self.min_validation_loss:
                     self.min_validation_loss = self.test_rmse
                     self.counter = 0
+                    self.best_A = self.A
+                    self.best_sigma = self.sigma
                 elif self.test_rmse > (self.min_validation_loss - 0.0):
                     self.counter += 1
                     if self.counter >= self.patience:

@@ -339,7 +339,7 @@ class MLKRR:
         return cost, gradA.ravel()
    
     def callback(self, parms):
-
+        do_terminate = False  # Terminates early if patience is set
         if self.test_data != None:
             self.train_rmses.append(self.train_rmse)
             self.train_maes.append(self.train_mae)
@@ -350,6 +350,7 @@ class MLKRR:
             self.test_maes.append(self.test_mae)
 
             if self.patience is not None:
+
                 if self.test_rmse < self.min_validation_loss:
                     self.min_validation_loss = self.test_rmse
                     self.counter = 0
@@ -358,14 +359,15 @@ class MLKRR:
                 elif self.test_rmse > (self.min_validation_loss - 0.0):
                     self.counter += 1
                     if self.counter >= self.patience:
-                        raise StopIteration()
+                        do_terminate = True
 
             if self.verbose:
                 print("Test RMSE:", np.round(self.test_rmse, 5))
             print("Test MAE:", np.round(self.test_mae, 5))
-        
+
         self.n_iter_ += 1
-    
+        return do_terminate
+
     # used for sigma optimization
     def simpleloss(self,sigma,A, X,y):
         indices_X1, indices_X2 = self.indices_X1, self.indices_X2

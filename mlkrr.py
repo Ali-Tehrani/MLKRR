@@ -128,8 +128,8 @@ class MLKRR:
         shuffle_iterations=1,
         diag=False,
         patience=None,
+        alternative=False,
     ):
-
         self.test_data = test_data
         self.init = init
         self.tol = tol
@@ -149,6 +149,7 @@ class MLKRR:
         self.best_A = None
         self.best_sigma = None
         self.counter = 0
+        self.alternative = alternative
 
     def fit(self, X, y):
         """
@@ -208,7 +209,7 @@ class MLKRR:
                     )
                 )
 
-            if self.learn_sigma:
+            if self.learn_sigma or self.alternative:
                 print("Optimizing for sigma. Current sigma:", self.sigma)
                 t=time.time()
                 res = minimize(
